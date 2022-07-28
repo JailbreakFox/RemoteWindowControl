@@ -9,6 +9,6 @@ Windows、Linux
 所以打算从最基础开始做一款开源的远程桌面控制软件。
 
 # 使用方法
-mkdir build && cd build
-cmake ..
+mkdir build && cd build  
+cmake ..  
 make
