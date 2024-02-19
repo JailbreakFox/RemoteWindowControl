@@ -6,9 +6,52 @@
 #include <QPainter>
 #include <QScreen>
 #include <QWindow>
+#include <QMouseEvent>
 
 #ifdef Q_OS_WIN
-#include <windows.h>
+#include <Windows.h>
+#else
+#include <unistd.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+void mouseImpl(bool press)
+{
+    Display *display = XOpenDisplay(NULL);
+
+    XEvent event;
+
+    if (display == NULL)
+        return;
+
+    memset(&event, 0x00, sizeof(event));
+
+    if (press)
+        event.type = ButtonPress;
+    else
+        event.type = ButtonRelease;
+    event.xbutton.button = 0;
+    event.xbutton.same_screen = True;
+
+    XQueryPointer(display, RootWindow(display, DefaultScreen(display)), &event.xbutton.root, &event.xbutton.window, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+
+    event.xbutton.subwindow = event.xbutton.window;
+
+    while (event.xbutton.subwindow)
+    {
+        event.xbutton.window = event.xbutton.subwindow;
+
+        XQueryPointer(display, event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+    }
+
+    if (XSendEvent(display, PointerWindow, True, 0xfff, &event) == 0)
+        printf("Errore nell'invio dell'evento !!!/n");
+
+    XFlush(display);
+
+    XCloseDisplay(display);
+}
 #endif
 
 void SystemApi::mousePress(const QPointF &pos)
@@ -23,6 +66,8 @@ void SystemApi::mousePress(const QPointF &pos)
     mouse_event(MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
 #else
     QCursor::setPos(pos_x, pos_y);
+
+    mouseImpl(true);
 #endif
 }
 
@@ -38,6 +83,8 @@ void SystemApi::mouseRelease(const QPointF &pos)
     mouse_event(MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 #else
     QCursor::setPos(pos_x, pos_y);
+
+    mouseImpl(false);
 #endif
 }
 
