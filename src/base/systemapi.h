@@ -9,6 +9,7 @@ class SystemApi {
     static void mousePress(const QPointF &pos);
     static void mouseRelease(const QPointF &pos);
     static void mouseMove(const QPointF &pos);
+    static void keyInput(const QPointF& key);
 
     /** System Tools */
     static QPixmap grabScreen();

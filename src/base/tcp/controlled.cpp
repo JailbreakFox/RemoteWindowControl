@@ -20,22 +20,20 @@ void Controlled::finish() {
     if (m_controlled) m_controlled->abort();
 }
 
-void Controlled::processEvent(const RemoteEvent &ev) {
-    QRectF screenRect = qApp->primaryScreen()->geometry();
-    QPointF localPos(ev.position().x() * screenRect.width(),
-                     ev.position().y() * screenRect.height());
-
+void Controlled::processEvent(const RemoteEvent &ev)
+{
     switch (ev.type()) {
         case RemoteEvent::EventType::Pressed:
-            SystemApi::mousePress(localPos);
+            SystemApi::mousePress(ev.position());
             break;
         case RemoteEvent::EventType::Released:
-            SystemApi::mouseRelease(localPos);
+            SystemApi::mouseRelease(ev.position());
             break;
         case RemoteEvent::EventType::Moved:
-            SystemApi::mouseMove(localPos);
+            SystemApi::mouseMove(ev.position());
             break;
         case RemoteEvent::EventType::KeyInput:
+            SystemApi::keyInput(ev.position());
             break;
         default:
             break;
