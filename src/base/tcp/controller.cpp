@@ -23,26 +23,38 @@ Controller::Controller(QObject *parent) : QObject(parent) {
 
 void Controller::finish() { m_socket->abort(); }
 
-void Controller::mousePressed(const QPointF &position) {
+void Controller::mousePressed(const QPointF &position)
+{
     sendRemoteEvent(RemoteEvent::EventType::Pressed, position);
 }
 
-void Controller::mouseReleased(const QPointF &position) {
+void Controller::mouseReleased(const QPointF &position)
+{
     sendRemoteEvent(RemoteEvent::EventType::Released, position);
 }
 
-void Controller::mouseMoved(const QPointF &position) {
+void Controller::mouseMoved(const QPointF &position)
+{
     sendRemoteEvent(RemoteEvent::EventType::Moved, position);
 }
 
-void Controller::requestNewConnection(const QString &address) {
+void Controller::keyInput(int key)
+{
+    sendRemoteEvent(RemoteEvent::EventType::KeyInput, QPointF(key, 0));
+}
+
+void Controller::requestNewConnection(const QString &address)
+{
     QHostAddress hostAddress(address);
     m_socket->abort();
     m_socket->connectHost(hostAddress, 43800);
 }
 
-void Controller::sendRemoteEvent(RemoteEvent::EventType type,
-                                 const QPointF &position) {
-    RemoteEvent event(type, position);
-    m_socket->writeToSocket(event);
+void Controller::sendRemoteEvent(RemoteEvent::EventType type, const QPointF &position)
+{
+    if (m_socket->isOpen())
+    {
+        RemoteEvent event(type, position);
+        m_socket->writeToSocket(event);
+    }
 }

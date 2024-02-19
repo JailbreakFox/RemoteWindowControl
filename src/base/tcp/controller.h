@@ -18,9 +18,10 @@ class Controller : public QObject {
     void mousePressed(const QPointF &position);
     void mouseReleased(const QPointF &position);
     void mouseMoved(const QPointF &position);
+    void keyInput(int key);
     void requestNewConnection(const QString &address);
 
-   signals:
+signals:
     void connected();
     void disconnected();
     void needUpdate();

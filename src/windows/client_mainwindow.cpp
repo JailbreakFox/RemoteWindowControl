@@ -4,16 +4,18 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QDebug>
 
 #include "imageprovider.h"
 #include "tcp/controller.h"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 700
-#define REMOTE_IP "127.0.0.1"
+#define WINDOW_WIDTH 1080
+#define WINDOW_HEIGHT 800
+#define REMOTE_IP "192.168.1.157"
 
-ClientMainWindow::ClientMainWindow(QMainWindow *parent) : QMainWindow(parent) {
-    this->setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT + 50);
+ClientMainWindow::ClientMainWindow(QMainWindow *parent) : QMainWindow(parent)
+{
+    this->setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     QWidget *content = new QWidget(this);
     content->setContentsMargins(0, 0, 0, 0);
@@ -22,30 +24,57 @@ ClientMainWindow::ClientMainWindow(QMainWindow *parent) : QMainWindow(parent) {
     layout->setSpacing(0);
 
     m_label = new QLabel(this);
-    m_label->setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    //创建一个PushButton
-    QPushButton *btn = new QPushButton(tr("start connect"), this);
+    m_label->setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     this->setCentralWidget(content);
     layout->addWidget(m_label);
-    layout->addWidget(btn);
+    this->setMouseTracking(true);
+    centralWidget()->setMouseTracking(true);
+    m_label->setMouseTracking(true);
 
     m_controller = new Controller(this);
     m_provider = m_controller->getImageProvider();
 
-    connect(btn, &QPushButton::clicked, this, [=]() {
-        if (m_controller) m_controller->requestNewConnection(REMOTE_IP);
-    });
+    if (m_controller) m_controller->requestNewConnection(REMOTE_IP);
 
-    connect(m_controller, &Controller::needUpdate, this, [=]() {
-        if (m_provider) {
-            QPixmap pixmap = m_provider->requestPixmap("", m_label->size());
-            if (m_label) {
+    connect(m_controller, &Controller::needUpdate, this, [=]()
+    {
+        if (m_provider)
+        {
+            QPixmap pixmap = m_provider->requestPixmap("", QSize(0, 0));
+            if (m_label)
+            {
+                this->setFixedSize(pixmap.size());
                 m_label->setPixmap(pixmap);
             }
         }
     });
 }
 
-ClientMainWindow::~ClientMainWindow() {}
+ClientMainWindow::~ClientMainWindow()
+{
+
+}
+
+void ClientMainWindow::mousePressEvent(QMouseEvent *event)
+{
+    QPointF relativePos = event->pos();
+    m_controller->mousePressed(relativePos);
+}
+
+void ClientMainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    QPointF relativePos = event->pos();
+    m_controller->mouseReleased(relativePos);
+}
+
+void ClientMainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    QPointF relativePos = event->pos();
+    m_controller->mouseMoved(relativePos);
+}
+
+void ClientMainWindow::keyPressEvent(QKeyEvent *event)
+{
+    m_controller->keyInput(event->key());
+}
